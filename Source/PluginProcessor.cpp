@@ -136,11 +136,12 @@ void ItchAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Mi
     int numSamples = buffer.getNumSamples();
     float targetScratch = lastLastScratch;
     float targetVolume = lastVolume;
+    float delta = powf(abs(targetScratch - lastScratch) * (*slewCurve * (sqrtf(2.f) - 1) + 1.f), *slewCurve + 1.f) * juce::jmin(*slewRate * numSamples * 48 / getSampleRate(), 1.0);
     if (targetScratch < lastScratch) {
-        targetScratch += powf(abs(targetScratch - lastScratch), *slewCurve + 1.f) * (*slewRate * 0.1);
+        targetScratch += delta;
     }
     else if (targetScratch > lastScratch) {
-        targetScratch -= powf(targetScratch - lastScratch, *slewCurve + 1.f) * (*slewRate * 0.1);
+        targetScratch -= delta;
     }
 
     synth.processBlock(buffer, 0, buffer.getNumSamples(), lastLastScratch * (*end - *start) + *start , targetScratch * (*end - *start) + *start, lastLastVolume, targetVolume);
